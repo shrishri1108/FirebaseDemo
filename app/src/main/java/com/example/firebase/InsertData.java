@@ -13,6 +13,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Toast;
@@ -33,6 +34,7 @@ import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
 
 import java.io.InputStream;
+import java.sql.Time;
 import java.util.Random;
 
 public class InsertData extends AppCompatActivity {
@@ -40,6 +42,7 @@ public class InsertData extends AppCompatActivity {
     private StudentDataHolder studentDataHolder;
     private ActivityInsertDataBinding insertDataBinding;
     private Uri filepath;
+    private StorageReference uploader;
     private Bitmap bitmap;
 
     @Override
@@ -54,7 +57,7 @@ public class InsertData extends AppCompatActivity {
             public void onClick(View view) {
                 // Inserting data into firebase
                 // taking text from input fields and bind them into an adapter.
-                uploadToFirebase();
+                uploadingDataToRealTimeFirebaseDatabase();
             }
         });
 //
@@ -95,7 +98,21 @@ public class InsertData extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
 
-                        uploadToFirebase();
+                        uploadToFirebaseCloudStorage();
+                        insertDataBinding.showImagOuterInterface.setVisibility(View.GONE);
+                        insertDataBinding.defaultInterface.setVisibility(View.VISIBLE);
+                    }
+                });
+                insertDataBinding.btnSaveStudent.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        uploadingDataToRealTimeFirebaseDatabase();
+                    }
+                });
+
+                insertDataBinding.btnCancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
                         insertDataBinding.showImagOuterInterface.setVisibility(View.GONE);
                         insertDataBinding.defaultInterface.setVisibility(View.VISIBLE);
                     }
@@ -103,20 +120,11 @@ public class InsertData extends AppCompatActivity {
 
             }
         });
-
-        insertDataBinding.btnCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                insertDataBinding.showImagOuterInterface.setVisibility(View.GONE);
-                insertDataBinding.defaultInterface.setVisibility(View.VISIBLE);
-            }
-        });
-
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == 1 && resultCode == RESULT_OK) {
+        if (requestCode == 1 && resultCode == RESULT_OK && data!=null) {
             filepath = data.getData();
             try {
                 InputStream inputStream = getContentResolver().openInputStream(filepath);
@@ -129,7 +137,7 @@ public class InsertData extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void uploadToFirebase() {
+    private void uploadToFirebaseCloudStorage() {
 
         // Uploading Image to Cloud Storage
         ProgressDialog dialog = new ProgressDialog(this);
@@ -137,13 +145,14 @@ public class InsertData extends AppCompatActivity {
         dialog.show();
 
         FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference uploader = storage.getReference().child("image- " + new Random().nextInt(50));
+        String file_name_es= "image-  " + SystemClock.currentThreadTimeMillis();
+        uploader= storage.getReference().child(file_name_es);
         uploader.putFile(filepath)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                         dialog.dismiss();
-                        uploadingDataToRealTimeFirebaseDatabase(uploader);
+                        insertDataBinding.tvUploadedFileName.setVisibility(View.VISIBLE);
                         Toast.makeText(InsertData.this, " File uploaded", Toast.LENGTH_SHORT).show();
                     }
                 })
@@ -157,48 +166,46 @@ public class InsertData extends AppCompatActivity {
     }
 
 
-    private void uploadingDataToRealTimeFirebaseDatabase(StorageReference uploader) {
-        insertDataBinding.btnSaveStudent.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+    private void uploadingDataToRealTimeFirebaseDatabase() {
+
                 uploader.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                    @Override
-                    public void onSuccess(Uri uri) {
-                        studentDataHolder = new StudentDataHolder(
-                                insertDataBinding.etName.getText().toString(),
-                                insertDataBinding.etAge.getText().toString(),
-                                insertDataBinding.etContactNo.getText().toString(),
-                                uri.toString(),
-                                insertDataBinding.etUserPwd.getText().toString()
-                        );
+                @Override
+                public void onSuccess(Uri uri) {
+                    studentDataHolder = new StudentDataHolder(
+                            insertDataBinding.etName.getText().toString(),
+                            insertDataBinding.etAge.getText().toString(),
+                            insertDataBinding.etContactNo.getText().toString(),
+                            uri.toString(),
+                            insertDataBinding.etUserPwd.getText().toString()
+                    );
+                    // Step -1: get firebase database instance
+                    FirebaseDatabase db = FirebaseDatabase.getInstance();
 
-                        // Step -1: get firebase database instance
-                        FirebaseDatabase db = FirebaseDatabase.getInstance();
-
-                        // step -2: get child node reference  of  root node at which you want to insert data .
-                        // If there is no child inside root node then getReference("student") -------> getReference()
-                        DatabaseReference node = db.getReference("student");
+                    // step -2: get child node reference  of  root node at which you want to insert data .
+                    // If there is no child inside root node then getReference("student") -------> getReference()
+                    DatabaseReference node = db.getReference("student");
 
 
-                        // Step -3 : Setting the input value into a node
-                        // If you want to insert  data further inside a node then you can use child("child_node_name") at the reference of child node of root node
-                        // and then using setValue(Object obj) method to insert value at that node .
+                    // Step -3 : Setting the input value into a node
+                    // If you want to insert  data further inside a node then you can use child("child_node_name") at the reference of child node of root node
+                    // and then using setValue(Object obj) method to insert value at that node .
 
-                        node.child(insertDataBinding.etRollNo.getText().toString())
-                                .setValue(studentDataHolder);
+                    node.child(insertDataBinding.etRollNo.getText().toString())
+                            .setValue(studentDataHolder);
 
-                        insertDataBinding.etRollNo.setText("");
-                        insertDataBinding.etName.setText("");
-                        insertDataBinding.etAge.setText("");
-                        insertDataBinding.etUserPwd.setText("");
-                        insertDataBinding.etRollNo.setText("");
-                        insertDataBinding.etContactNo.setText("");
-                        Toast.makeText(InsertData.this, " Value inserted ", Toast.LENGTH_SHORT).show();
-
-                    }
-                });
-            }
-        });
+                    insertDataBinding.etRollNo.setText("");
+                    insertDataBinding.etName.setText("");
+                    insertDataBinding.etAge.setText("");
+                    insertDataBinding.etUserPwd.setText("");
+                    insertDataBinding.etRollNo.setText("");
+                    insertDataBinding.tvUploadedFileName.setVisibility(View.GONE);
+                    insertDataBinding.etContactNo.setText("");
+                    Intent intent=new Intent(InsertData.this, Dashboard.class);
+                    Toast.makeText(InsertData.this, " Value inserted ", Toast.LENGTH_SHORT).show();
+                    startActivity(intent);
+                    finish();
+                }
+            });
 
     }
 

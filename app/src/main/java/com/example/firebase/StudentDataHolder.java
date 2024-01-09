@@ -7,6 +7,9 @@ public class StudentDataHolder {
     private String contact_no;
     private String password;
 
+    public StudentDataHolder(){
+
+    }
     public StudentDataHolder(String name, String age, String contact_no, String imgLinks, String password) {
         this.name = name;
         this.age = age;

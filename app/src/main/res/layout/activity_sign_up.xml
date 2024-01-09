@@ -32,6 +32,7 @@
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textPersonName"
             android:id="@+id/et_user_id"
             />
     </com.google.android.material.textfield.TextInputLayout>
@@ -47,6 +48,7 @@
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textPersonName"
             android:hint="enter user name here "
             android:id="@+id/et_name"
             />
@@ -62,6 +64,7 @@
         >
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
+            android:inputType="number"
             android:layout_height="wrap_content"
             android:hint="enter your age "
             android:id="@+id/et_age"
@@ -79,6 +82,7 @@
     <com.google.android.material.textfield.TextInputEditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:inputType="textPassword"
         android:id="@+id/et_user_pwd"
         android:hint="enter your password here"
         />
@@ -95,6 +99,7 @@
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textPassword"
             android:hint="enter your password again here"
             android:id="@+id/et_confirm_password"
             />
@@ -112,7 +117,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="enter your password again"
+            android:hint="enter your contact no "
+            android:inputType="number"
             android:id="@+id/et_contact_no"
             />
     </com.google.android.material.textfield.TextInputLayout>
@@ -145,10 +151,23 @@
         android:layout_marginTop="13dp"
         android:paddingRight="47dp"
         android:text=" Register here"
-        app:layout_constraintEnd_toEndOf="parent"
         android:id="@+id/btn_sign_up"
         app:layout_constraintTop_toBottomOf="@id/address_outer_lays"
         app:layout_constraintStart_toStartOf="parent"
+        />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:id="@+id/btn_browse"
+        app:layout_constraintTop_toBottomOf="@id/address_outer_lays"
+        android:layout_marginTop="17dp"
+        android:textSize="23sp"
+        android:layout_marginLeft="17dp"
+        android:text="browse"
+        app:layout_constraintStart_toEndOf="@id/btn_sign_up"
+        android:textAllCaps="false"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
